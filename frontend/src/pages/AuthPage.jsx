@@ -127,72 +127,8 @@ function SudSpinner({ size = 18 }) {
   );
 }
 
-const FEATURES = [
-  { Icon:Zap,         title:'Ultra-fast Streaming AI',   desc:'Groq · 280+ tokens/sec · 5 models live'          },
-  { Icon:BarChart2,   title:'Sacred Analytics',           desc:'Real-time metrics, usage patterns & insights'    },
-  { Icon:Layers,      title:'Project Management',         desc:'Kanban boards with divine order & precision'     },
-  { Icon:ShieldCheck, title:'Enterprise Security',        desc:'JWT auth · Rate limiting · End-to-end encrypted' },
-];
 
-const TRUST = [
-  { Icon:CheckCircle, label:'SOC 2 Ready'  },
-  { Icon:Lock,        label:'Encrypted'    },
-  { Icon:Globe,       label:'99.9% Uptime' },
-  { Icon:Star,        label:'Enterprise'   },
-];
 
-/* ══════════════════════════════════════════════════════════════
-   INPUT FIELD
-══════════════════════════════════════════════════════════════ */
-function Field({ label, type='text', value, onChange, onKeyDown,
-  placeholder, focused, onFocus, onBlur, error, Icon, suffix }) {
-  return (
-    <div>
-      <label style={{
-        display:'block', fontSize:9.5, fontWeight:800,
-        color:focused?G:GM, textTransform:'uppercase',
-        letterSpacing:'.6px', marginBottom:6,
-        fontFamily:'Cinzel,serif', transition:'color .18s',
-      }}>{label}</label>
-      <div style={{position:'relative'}}>
-        {Icon && (
-          <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',
-            pointerEvents:'none',display:'flex',alignItems:'center'}}>
-            <Icon size={14} color={focused?G:'rgba(122,79,0,.38)'} strokeWidth={1.8}/>
-          </span>
-        )}
-        <input
-          type={type} value={value} onChange={onChange}
-          onKeyDown={onKeyDown} placeholder={placeholder}
-          onFocus={onFocus} onBlur={onBlur}
-          style={{
-            width:'100%', padding:'11px 14px',
-            paddingLeft:Icon?'37px':'14px',
-            paddingRight:suffix?'44px':'14px',
-            borderRadius:11, fontSize:13.5,
-            fontFamily:'Outfit,sans-serif',
-            outline:'none', transition:'all .2s',
-            boxSizing:'border-box', color:GD,
-            background:focused?CREAM:'rgba(255,252,240,.75)',
-            border:`1.5px solid ${error?C.red:focused?G:LINEB}`,
-            boxShadow:focused
-              ?`0 0 0 3px rgba(201,119,0,.11),0 2px 8px rgba(0,0,0,.05)`
-              :'0 1px 3px rgba(0,0,0,.04)',
-          }}/>
-        {suffix && (
-          <span style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)'}}>
-            {suffix}
-          </span>
-        )}
-      </div>
-      {error && (
-        <p style={{fontSize:10.5,color:C.red,marginTop:4,display:'flex',alignItems:'center',gap:4}}>
-          <AlertCircle size={10}/> {error}
-        </p>
-      )}
-    </div>
-  );
-}
 
 /* ══════════════════════════════════════════════════════════════
    MAIN PAGE
