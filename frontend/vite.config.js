@@ -12,15 +12,22 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    chunkSizeWarningLimit: 2000,
+    // ✅ FIX: lower limit so we see warnings earlier
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
+          // Core React runtime — always needed, loaded first
           vendor: ['react', 'react-dom', 'react-router-dom'],
+          // Data fetching
           query: ['@tanstack/react-query'],
+          // UI animation + icons — shared across all pages
           ui: ['framer-motion', 'lucide-react'],
+          // Charts — only used on analytics/dashboard
           chart: ['recharts'],
-          md: ['marked', 'highlight.js'],
+          // Markdown renderer — only used in ChatPage
+          // highlight.js now uses core-only so this chunk is ~70KB not 981KB
+          md: ['marked'],
         },
       },
     },

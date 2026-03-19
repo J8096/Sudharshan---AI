@@ -1,141 +1,103 @@
-# 🌟 Sudharshan AI — Enterprise Platform v3.0
+# 🌀 Sudharshan AI — Enterprise Platform v3.0
 
-A full-stack AI enterprise workspace with real-time chat (Groq API), analytics, project management, team collaboration, and more.
+> *Inspired by Sri Krishna's Sudarshana Chakra — the unstoppable divine weapon of wisdom.*
 
-## ⚡ Tech Stack
+A full-stack AI enterprise workspace with real-time streaming chat, project management, analytics, and team collaboration.
 
-- **Frontend**: React 18 + Vite + Tailwind CSS → **Vercel**
-- **Backend**: Node.js + Express + Socket.io → **Render**
-- **AI**: Groq API (Llama 3.3 70B, Llama 3.1 8B, GPT OSS)
-- **DB**: MongoDB Atlas (optional — falls back to in-memory)
+**[Live Demo →](https://sudharshan-ai.vercel.app)** · **[Backend →](https://sudharshan-ai-backend.onrender.com/api/health)**
 
 ---
 
-## 🚀 Deploy in 15 Minutes
+## ✨ Features
 
-### Step 1 — Get a Free Groq API Key
-1. Go to [console.groq.com](https://console.groq.com)
-2. Sign up → API Keys → **Create Key**
-3. Copy the key (starts with `gsk_`)
-
-### Step 2 — Push to GitHub
-```bash
-git init
-git add .
-git commit -m "Initial commit — Sudharshan AI v3.0"
-git remote add origin https://github.com/YOUR_USERNAME/sudharshan-ai.git
-git push -u origin main
-```
-
-### Step 3 — Deploy Backend on Render
-1. Go to [render.com](https://render.com) → **New → Web Service**
-2. Connect your GitHub repo
-3. Configure:
-   - **Root Directory**: `backend`
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-   - **Node Version**: 18+
-4. Add **Environment Variables**:
-   ```
-   NODE_ENV=production
-   GROQ_API_KEY=gsk_your_key_here
-   JWT_SECRET=any_long_random_string_here
-   FRONTEND_URL=https://your-app.vercel.app
-   MONGODB_URI=          ← leave blank for in-memory, or add MongoDB Atlas URI
-   ```
-5. Click **Deploy** — note your Render URL (e.g. `https://sudharshan-ai.onrender.com`)
-
-### Step 4 — Deploy Frontend on Vercel
-1. Go to [vercel.com](https://vercel.com) → **New Project**
-2. Import your GitHub repo
-3. Configure:
-   - **Root Directory**: `frontend`
-   - **Framework Preset**: Vite
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-4. Add **Environment Variable**:
-   ```
-   VITE_API_URL=https://sudharshan-ai.onrender.com
-   ```
-   *(use your actual Render URL — no trailing slash)*
-5. Click **Deploy** — get your Vercel URL
-
-### Step 5 — Link Frontend URL in Render
-Go back to Render → your service → **Environment** → update:
-```
-FRONTEND_URL=https://your-actual-app.vercel.app
-```
-Then click **Manual Deploy → Deploy latest commit**
+- ⚡ **Real-time AI Chat** — SSE streaming at 280+ tokens/sec via Groq API
+- 📊 **Analytics Dashboard** — Live KPI cards, area charts, model usage breakdown
+- 🗂️ **Kanban Project Management** — Drag tasks across columns
+- 👥 **Team Collaboration** — Role-based access (admin / member / viewer)
+- 🔔 **Notifications** — Real-time system and task alerts
+- 🔐 **JWT Authentication** — bcrypt hashing, 7-day tokens
+- 📎 **File Attachments** — Attach code files, text, JSON to chat sessions
 
 ---
 
-## 🔐 Default Login
+## 🏗️ Architecture
+
 ```
-Email:    admin@kova.ai
-Password: password123
+Sudharshan-AI/
+├── backend/                  # Node.js + Express API
+│   ├── config/database.js    # MongoDB + in-memory fallback
+│   ├── controllers/          # auth, chat, projects, analytics
+│   ├── middlewares/          # JWT auth guard
+│   ├── models/               # User, Project, Chat, Notification
+│   ├── routes/               # Express routers
+│   └── server.js             # Entry point, Socket.IO, rate limiting
+│
+└── frontend/                 # React 18 + Vite
+    └── src/
+        ├── components/       # ErrorBoundary, AuthField, AuthFeatures
+        ├── hooks/            # useAuth, useToast
+        ├── layouts/          # AppLayout (sidebar + topbar)
+        ├── pages/            # Dashboard, Chat, Projects, Analytics...
+        ├── services/         # Axios instance + API helpers
+        └── styles/           # Global CSS
 ```
 
 ---
 
-## 💻 Local Development
+## ⚡ Performance Optimisations
+
+| Optimisation | Impact |
+|---|---|
+| `highlight.js` core-only (13 languages) | 981 KB → 70 KB |
+| `React.lazy()` on all 7 pages | ~60% faster initial load |
+| Render keep-alive ping every 14 min | No cold-start delays |
+| Session TTL garbage collection (2hr) | No memory leak |
+| Vite `manualChunks` code splitting | 6 cacheable chunks |
+
+---
+
+## 🚀 Local Development
 
 ```bash
-# Terminal 1 — Backend
-cd backend
-cp .env.example .env
-# Edit .env and add your GROQ_API_KEY
-npm install
-npm run dev       # → http://localhost:3001
+# Backend
+cd backend && cp .env.example .env
+# Add GROQ_API_KEY to .env
+npm install && npm run dev   # → http://localhost:3001
 
-# Terminal 2 — Frontend
-cd frontend
-npm install
-npm run dev       # → http://localhost:5173
+# Frontend (new terminal)
+cd frontend && cp .env.example .env
+npm install && npm run dev   # → http://localhost:5173
 ```
+
+**Demo login:** `admin@sudharshan.ai` / `password123`
 
 ---
 
-## 🔧 Features
+## ☁️ Deployment
 
-| Feature | Status |
-|---------|--------|
-| Real-time AI chat (Groq streaming) | ✅ |
-| Multi-session chat history | ✅ |
-| File upload + AI analysis | ✅ |
-| Model selector (Llama 3.3, 3.1, GPT OSS) | ✅ |
-| Dashboard with analytics | ✅ |
-| Project management (Kanban) | ✅ |
-| Team management | ✅ |
-| Notifications system | ✅ |
-| Settings & profile | ✅ |
-| JWT auth (register/login) | ✅ |
-| MongoDB (optional) | ✅ |
-| In-memory fallback | ✅ |
-| WebSocket (Socket.io) | ✅ |
+**Backend → Render**
+- Root Dir: `backend` | Build: `npm install` | Start: `npm start`
+- Env vars: `GROQ_API_KEY`, `JWT_SECRET`, `FRONTEND_URL`, `MONGODB_URI`
+
+**Frontend → Vercel**
+- Root Dir: `frontend` | Build: `npm run build` | Output: `dist`
+- Env var: `VITE_API_URL=https://your-backend.onrender.com`
 
 ---
 
-## 📁 Project Structure
+## 🛠️ Tech Stack
 
-```
-sudharshan-ai/
-├── backend/
-│   ├── controllers/    # Business logic
-│   ├── routes/         # Express routes
-│   ├── models/         # Mongoose schemas
-│   ├── middlewares/    # JWT auth
-│   ├── config/         # DB connection
-│   ├── uploads/        # File uploads
-│   ├── server.js       # Entry point
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── pages/      # All page components
-│   │   ├── hooks/      # useAuth, useToast
-│   │   ├── services/   # api.js (axios)
-│   │   ├── layouts/    # AppLayout (sidebar + header)
-│   │   └── styles/     # globals.css
-│   ├── vercel.json     # SPA routing
-│   └── package.json
-└── README.md
-```
+React 18 · Vite 5 · TanStack Query · Framer Motion · Recharts · Node.js · Express · Groq API · MongoDB · Socket.IO · JWT · Vercel · Render
+
+---
+
+## 🧠 What I Learned
+
+- SSE streaming requires Fetch API + ReadableStream — axios doesn't support it
+- `highlight.js` full bundle = 981KB. Core + 13 languages = 70KB. Profile your bundles.
+- Render free tier cold starts are fixed with a 14-min keep-alive ping
+- Design tokens (`G`, `GL`, `GD`) prevent color drift across 8+ pages
+
+---
+
+<p align="center"><i>ॐ नमो भगवते वासुदेवाय</i></p>

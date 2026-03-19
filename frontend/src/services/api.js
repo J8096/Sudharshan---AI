@@ -10,7 +10,7 @@ const api = axios.create({ baseURL: BASE_URL, timeout: 30000 });
 
 // Attach JWT token
 api.interceptors.request.use((cfg) => {
-  const token = localStorage.getItem('kova_token');
+  const token = localStorage.getItem('sudharshan_token');
   if (token) cfg.headers.Authorization = `Bearer ${token}`;
   return cfg;
 });
@@ -20,8 +20,8 @@ api.interceptors.response.use(
   (r) => r,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('kova_token');
-      localStorage.removeItem('kova_user');
+      localStorage.removeItem('sudharshan_token');
+      localStorage.removeItem('sudharshan_user');
       window.location.href = '/login';
     }
     return Promise.reject(err);
@@ -83,3 +83,13 @@ export const notifApi = {
 };
 
 export default api;
+
+// ✅ OPTIMISED: ping Render backend every 14 min to prevent cold-start sleep.
+// Render free tier spins down after 15 min inactivity — this keeps it warm.
+if (import.meta.env.VITE_API_URL) {
+  const PING_URL = `${import.meta.env.VITE_API_URL}/api/ping`;
+  const ping = () => fetch(PING_URL, { method: 'GET' }).catch(() => {});
+  ping(); // ping immediately on app load
+  setInterval(ping, 14 * 60 * 1000); // then every 14 minutes
+}
+

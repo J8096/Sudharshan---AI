@@ -14,7 +14,42 @@ import {
   Clock, Hash, Activity, ArrowUpRight, MoreHorizontal,
 } from 'lucide-react';
 import { marked } from 'marked';
-import hljs from 'highlight.js';
+// ✅ OPTIMISED: import only core + 13 languages → chunk drops from 981 KB to ~70 KB
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import python     from 'highlight.js/lib/languages/python';
+import bash       from 'highlight.js/lib/languages/bash';
+import json       from 'highlight.js/lib/languages/json';
+import css        from 'highlight.js/lib/languages/css';
+import html       from 'highlight.js/lib/languages/xml';
+import sql        from 'highlight.js/lib/languages/sql';
+import rust       from 'highlight.js/lib/languages/rust';
+import go         from 'highlight.js/lib/languages/go';
+import java       from 'highlight.js/lib/languages/java';
+import cpp        from 'highlight.js/lib/languages/cpp';
+import plaintext  from 'highlight.js/lib/languages/plaintext';
+
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('js',         javascript);
+hljs.registerLanguage('typescript', typescript);
+hljs.registerLanguage('ts',         typescript);
+hljs.registerLanguage('python',     python);
+hljs.registerLanguage('py',         python);
+hljs.registerLanguage('bash',       bash);
+hljs.registerLanguage('sh',         bash);
+hljs.registerLanguage('shell',      bash);
+hljs.registerLanguage('json',       json);
+hljs.registerLanguage('css',        css);
+hljs.registerLanguage('html',       html);
+hljs.registerLanguage('xml',        html);
+hljs.registerLanguage('sql',        sql);
+hljs.registerLanguage('rust',       rust);
+hljs.registerLanguage('go',         go);
+hljs.registerLanguage('java',       java);
+hljs.registerLanguage('cpp',        cpp);
+hljs.registerLanguage('c',          cpp);
+hljs.registerLanguage('plaintext',  plaintext);
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS — exact match with entire app
@@ -437,7 +472,7 @@ export default function ChatPage() {
     const fd = new FormData();
     [...files].forEach(f => fd.append('files', f));
     if (sessId) fd.append('sessionId', sessId);
-    const token = localStorage.getItem('kova_token');
+    const token = localStorage.getItem('sudharshan_token');
     try {
       const r = await fetch(getUploadUrl(), {
         method: 'POST',
@@ -464,7 +499,7 @@ export default function ChatPage() {
     if (taRef.current) { taRef.current.style.height = 'auto'; }
 
     const controller = new AbortController(); abortRef.current = controller;
-    const token = localStorage.getItem('kova_token');
+    const token = localStorage.getItem('sudharshan_token');
 
     try {
       const resp = await fetch(getChatUrl(), {

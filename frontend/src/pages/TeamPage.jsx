@@ -19,12 +19,33 @@ import {
   Eye, Mail, Phone, Building2, Calendar, Clock, Activity,
   CheckCircle2, XCircle, ChevronDown, ChevronRight, X,
   Copy, MessageSquare, Trash2, RefreshCw, ArrowUpRight,
-  Star, Zap, Lock, Check, AlertTriangle, Info, Loader2,
+  Star, Zap, Lock, Check, AlertTriangle, Info,
   MoreHorizontal, UserCheck, UserX, SlidersHorizontal,
 } from 'lucide-react';
 import { authApi } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+
+/* ── Sudharshan AI inline spinner ── */
+function SudSpinner({ size = 14 }) {
+  const spokes = Array.from({ length: 12 }, (_, i) => {
+    const a = (i * 30 * Math.PI) / 180;
+    return { id: i, x1: 50 + 20 * Math.cos(a), y1: 50 + 20 * Math.sin(a), x2: 50 + 42 * Math.cos(a), y2: 50 + 42 * Math.sin(a) };
+  });
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100"
+      style={{ display: 'block', flexShrink: 0, animation: 'tmSpin 0.9s linear infinite' }}>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="4" />
+      {spokes.map(s => (
+        <line key={s.id} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
+          stroke="white" strokeWidth="5" strokeLinecap="round"
+          opacity={0.2 + (s.id / 12) * 0.8} />
+      ))}
+      <circle cx="50" cy="50" r="9" fill="white" opacity=".9" />
+    </svg>
+  );
+}
+
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS — exact match with AppLayout / DashboardPage
@@ -53,14 +74,14 @@ const C = {
 
 /* ── Seed data (fallback when API unavailable) ── */
 const SEED = [
-  { id:'u1', name:'Alex Johnson',   email:'alex@kova.ai',    role:'admin',  department:'Engineering', status:'active',   createdAt:'2024-01-15', lastActive:'2 min ago',  tasks:24, projects:8,  avatar:null, phone:'+1 555-0101' },
-  { id:'u2', name:'Priya Sharma',   email:'priya@kova.ai',   role:'admin',  department:'Product',     status:'active',   createdAt:'2024-02-10', lastActive:'1 hr ago',   tasks:31, projects:12, avatar:null, phone:'+1 555-0102' },
-  { id:'u3', name:'Marcus Reeves',  email:'marcus@kova.ai',  role:'member', department:'Design',      status:'active',   createdAt:'2024-03-05', lastActive:'4 hr ago',   tasks:18, projects:5,  avatar:null, phone:'+1 555-0103' },
-  { id:'u4', name:'Sofia Laurent',  email:'sofia@kova.ai',   role:'member', department:'Marketing',   status:'inactive', createdAt:'2024-04-20', lastActive:'3 days ago', tasks:7,  projects:3,  avatar:null, phone:'+1 555-0104' },
-  { id:'u5', name:'Aiden Patel',    email:'aiden@kova.ai',   role:'member', department:'Engineering', status:'active',   createdAt:'2024-05-01', lastActive:'30 min ago', tasks:42, projects:9,  avatar:null, phone:'+1 555-0105' },
-  { id:'u6', name:'Lena Fischer',   email:'lena@kova.ai',    role:'viewer', department:'Finance',     status:'active',   createdAt:'2024-06-12', lastActive:'1 day ago',  tasks:3,  projects:6,  avatar:null, phone:'+1 555-0106' },
-  { id:'u7', name:'Rahul Verma',    email:'rahul@kova.ai',   role:'member', department:'Engineering', status:'active',   createdAt:'2024-07-08', lastActive:'5 min ago',  tasks:29, projects:7,  avatar:null, phone:'+1 555-0107' },
-  { id:'u8', name:'Camille Dubois', email:'camille@kova.ai', role:'viewer', department:'Legal',       status:'inactive', createdAt:'2024-08-14', lastActive:'1 week ago', tasks:1,  projects:2,  avatar:null, phone:'+1 555-0108' },
+  { id:'u1', name:'Alex Johnson',   email:'alex@sudharshan.ai',    role:'admin',  department:'Engineering', status:'active',   createdAt:'2024-01-15', lastActive:'2 min ago',  tasks:24, projects:8,  avatar:null, phone:'+1 555-0101' },
+  { id:'u2', name:'Priya Sharma',   email:'priya@sudharshan.ai',   role:'admin',  department:'Product',     status:'active',   createdAt:'2024-02-10', lastActive:'1 hr ago',   tasks:31, projects:12, avatar:null, phone:'+1 555-0102' },
+  { id:'u3', name:'Marcus Reeves',  email:'marcus@sudharshan.ai',  role:'member', department:'Design',      status:'active',   createdAt:'2024-03-05', lastActive:'4 hr ago',   tasks:18, projects:5,  avatar:null, phone:'+1 555-0103' },
+  { id:'u4', name:'Sofia Laurent',  email:'sofia@sudharshan.ai',   role:'member', department:'Marketing',   status:'inactive', createdAt:'2024-04-20', lastActive:'3 days ago', tasks:7,  projects:3,  avatar:null, phone:'+1 555-0104' },
+  { id:'u5', name:'Aiden Patel',    email:'aiden@sudharshan.ai',   role:'member', department:'Engineering', status:'active',   createdAt:'2024-05-01', lastActive:'30 min ago', tasks:42, projects:9,  avatar:null, phone:'+1 555-0105' },
+  { id:'u6', name:'Lena Fischer',   email:'lena@sudharshan.ai',    role:'viewer', department:'Finance',     status:'active',   createdAt:'2024-06-12', lastActive:'1 day ago',  tasks:3,  projects:6,  avatar:null, phone:'+1 555-0106' },
+  { id:'u7', name:'Rahul Verma',    email:'rahul@sudharshan.ai',   role:'member', department:'Engineering', status:'active',   createdAt:'2024-07-08', lastActive:'5 min ago',  tasks:29, projects:7,  avatar:null, phone:'+1 555-0107' },
+  { id:'u8', name:'Camille Dubois', email:'camille@sudharshan.ai', role:'viewer', department:'Legal',       status:'inactive', createdAt:'2024-08-14', lastActive:'1 week ago', tasks:1,  projects:2,  avatar:null, phone:'+1 555-0108' },
 ];
 
 const DEPTS = ['Engineering','Product','Design','Marketing','Finance','Legal','Operations','Data'];
@@ -391,7 +412,7 @@ function InviteModal({ onClose, onInvited, addToast }) {
                   color:'#fff',fontSize:13,fontWeight:900,cursor:loading?'not-allowed':'pointer',
                   fontFamily:'Cinzel,serif',boxShadow:'0 4px 18px rgba(201,119,0,.36)',
                   display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-                {loading ? <><Loader2 size={14} style={{animation:'tmSpin 1s linear infinite'}}/> Sending…</> : 'Send Invitation →'}
+                {loading ? <><SudSpinner size={14}/> Sending…</> : 'Send Invitation →'}
               </button>
             </div>
           </>

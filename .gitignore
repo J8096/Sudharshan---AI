@@ -1,37 +1,9 @@
-# Dependencies
 node_modules/
-*/node_modules/
-
-# Environment files (NEVER commit secrets)
 .env
-.env.local
-.env.production
-backend/.env
-frontend/.env
-frontend/.env.local
-
-# Build output
 dist/
-build/
-.next/
-
-# Uploads (runtime files)
-backend/uploads/*
-!backend/uploads/.gitkeep
-
-# Logs
-*.log
-npm-debug.log*
-
-# OS
 .DS_Store
-Thumbs.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Render / Vercel
-.vercel/
+*.log
+uploads/*
+!uploads/.gitkeep
+# Uncomment below if you want reproducible installs via lockfile
+# Keep package-lock.json for now so Render/Vercel builds are deterministic

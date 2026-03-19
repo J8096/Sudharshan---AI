@@ -19,10 +19,10 @@ import {
    CONFIG  —  swap these for your real values
 ═══════════════════════════════════════════════════════════════ */
 const API_BASE   = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
-const TOKEN_KEY  = 'kova_token';               // matches rest of app
+const TOKEN_KEY  = 'sudharshan_token';               // matches rest of app
 const INITIAL_USER = {
   name:       'Alex Johnson',
-  email:      'admin@kova.ai',
+  email:      'admin@sudharshan.ai',
   department: 'Engineering',
   role:       'admin',
   bio:        '',
@@ -240,11 +240,22 @@ function Toggle({ label, desc, checked, onChange, disabled }) {
   );
 }
 
-function Spinner({ size=16, color=C.gold }) {
+function Spinner({ size = 16 }) {
+  const spokes = Array.from({ length: 12 }, (_, i) => {
+    const a = (i * 30 * Math.PI) / 180;
+    return { id: i, x1: 50 + 20 * Math.cos(a), y1: 50 + 20 * Math.sin(a), x2: 50 + 42 * Math.cos(a), y2: 50 + 42 * Math.sin(a) };
+  });
   return (
-    <div style={{ width:size,height:size,border:`2px solid rgba(201,119,0,.2)`,
-      borderTopColor:color,borderRadius:'50%',
-      animation:'spin .7s linear infinite',flexShrink:0 }}/>
+    <svg width={size} height={size} viewBox="0 0 100 100"
+      style={{ display: 'block', flexShrink: 0, animation: 'stSpin 0.9s linear infinite' }}>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(201,119,0,.15)" strokeWidth="4" />
+      {spokes.map(s => (
+        <line key={s.id} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
+          stroke="#C97700" strokeWidth="5" strokeLinecap="round"
+          opacity={0.2 + (s.id / 12) * 0.8} />
+      ))}
+      <circle cx="50" cy="50" r="9" fill="#C97700" opacity=".85" />
+    </svg>
   );
 }
 

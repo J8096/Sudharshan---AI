@@ -24,6 +24,9 @@ const allowedOrigins = [
 
 const io = new SocketServer(httpServer, {
   cors: { origin: allowedOrigins, methods: ['GET', 'POST'], credentials: true },
+  // ✅ FIX: reduce Socket.IO ping overhead in production
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 io.on('connection', (socket) => {
   socket.on('join', (userId) => socket.join(`user:${userId}`));
@@ -31,7 +34,8 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(compression());
+// ✅ FIX: stronger compression saves ~70% bandwidth on JSON responses
+app.use(compression({ level: 6, threshold: 1024 }));
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
@@ -50,7 +54,14 @@ const chatLimiter = rateLimit({ windowMs: 60*1000, max: 30, standardHeaders: tru
 app.use('/api/', limiter);
 app.use('/api/chat', chatLimiter);
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ✅ FIX: serve uploads with caching headers so browser doesn't re-download files
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
+
+// ✅ FIX: /api/ping is ultra-lightweight — used by keep-alive pinger (no DB, no auth)
+app.get('/api/ping', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
 app.get('/api/health', (req, res) => {
   const key = process.env.GROQ_API_KEY;

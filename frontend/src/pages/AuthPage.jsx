@@ -5,12 +5,14 @@ import { useNavigate }         from 'react-router-dom';
 import { useAuth }             from '../hooks/useAuth';
 import { useToast }            from '../hooks/useToast';
 import {
-  Eye, EyeOff, ArrowRight, Loader2,
-  Zap, BarChart2, Layers, ShieldCheck,
-  Lock, Globe, CheckCircle, Mail,
-  User, KeyRound, Sparkles, ChevronRight,
-  Activity, Star, AlertCircle,
+  Eye, EyeOff, ArrowRight,
+  Lock, CheckCircle, Mail,
+  User, KeyRound, Sparkles,
+  ShieldCheck, Star,
 } from 'lucide-react';
+// ✅ Sub-components extracted for cleaner structure
+import AuthField from '../components/auth/AuthField.jsx';
+import { AuthFeatureList, TrustBadges } from '../components/auth/AuthFeatures.jsx';
 
 /* ══════════════════════════════════════════════════════════════
    DESIGN TOKENS — exact match with every other page
@@ -104,6 +106,27 @@ const DOTS = Array.from({length:20},(_,i)=>({
   dur:(i%4)+4, del:((i*.6)%4).toFixed(1),
 }));
 
+
+/* ══ Sudharshan AI mini inline spinner ══ */
+function SudSpinner({ size = 18 }) {
+  const spokes = Array.from({ length: 12 }, (_, i) => {
+    const a = (i * 30 * Math.PI) / 180;
+    return { id: i, x1: 50 + 22 * Math.cos(a), y1: 50 + 22 * Math.sin(a), x2: 50 + 40 * Math.cos(a), y2: 50 + 40 * Math.sin(a) };
+  });
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100"
+      style={{ display: 'block', flexShrink: 0, animation: 'authSpin 0.9s linear infinite' }}>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,.35)" strokeWidth="3" />
+      {spokes.map(s => (
+        <line key={s.id} x1={s.x1} y1={s.y1} x2={s.x2} y2={s.y2}
+          stroke="white" strokeWidth="4" strokeLinecap="round"
+          opacity={0.25 + (s.id / 12) * 0.75} />
+      ))}
+      <circle cx="50" cy="50" r="10" fill="white" opacity=".9" />
+    </svg>
+  );
+}
+
 const FEATURES = [
   { Icon:Zap,         title:'Ultra-fast Streaming AI',   desc:'Groq · 280+ tokens/sec · 5 models live'          },
   { Icon:BarChart2,   title:'Sacred Analytics',           desc:'Real-time metrics, usage patterns & insights'    },
@@ -176,7 +199,7 @@ function Field({ label, type='text', value, onChange, onKeyDown,
 ══════════════════════════════════════════════════════════════ */
 export default function AuthPage() {
   const [mode,    setMode]    = useState('login');
-  const [form,    setForm]    = useState({name:'',email:'admin@kova.ai',password:'password123'});
+  const [form,    setForm]    = useState({name:'',email:'admin@sudharshan.ai',password:'password123'});
   const [showPw,  setShowPw]  = useState(false);
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(null);
@@ -342,45 +365,11 @@ export default function AuthPage() {
               </p>
             </div>
 
-            {/* feature rows — lucide icons only */}
-            <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              {FEATURES.map(({Icon,title,desc},i)=>(
-                <div key={i} className="af-feat"
-                  style={{
-                    ...slide(`${.36+i*.07}s`),
-                    display:'flex',alignItems:'center',gap:13,
-                    padding:'10px 13px',borderRadius:13,
-                    background:'rgba(201,119,0,.05)',
-                  }}>
-                  <div style={{
-                    width:38,height:38,borderRadius:11,flexShrink:0,
-                    display:'flex',alignItems:'center',justifyContent:'center',
-                    background:`linear-gradient(135deg,${G}18,${GL}10)`,
-                    border:`1px solid ${G}28`,
-                  }}>
-                    <Icon size={17} color={G} strokeWidth={1.7}/>
-                  </div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{color:GD,fontSize:12.5,fontWeight:700,marginBottom:1}}>{title}</div>
-                    <div style={{color:'rgba(122,79,0,.5)',fontSize:11.5,lineHeight:1.5}}>{desc}</div>
-                  </div>
-                  <ChevronRight size={13} color='rgba(201,119,0,.28)' style={{flexShrink:0}}/>
-                </div>
-              ))}
-            </div>
+            {/* ✅ Extracted to AuthFeatures component */}
+            <AuthFeatureList slide={slide} />
 
-            {/* trust badges */}
-            <div style={{...slide('.64s'),display:'flex',gap:7,marginTop:18,flexWrap:'wrap'}}>
-              {TRUST.map(({Icon,label},i)=>(
-                <div key={i} className="af-trust"
-                  style={{display:'flex',alignItems:'center',gap:5,
-                    padding:'5px 11px',borderRadius:99,
-                    background:GSoft,border:`1px solid ${LINE}`}}>
-                  <Icon size={11} color={C.green} strokeWidth={2.2}/>
-                  <span style={{fontSize:10,fontWeight:600,color:GM}}>{label}</span>
-                </div>
-              ))}
-            </div>
+            {/* ✅ Extracted to AuthFeatures component */}
+            <TrustBadges slide={slide} />
           </div>
 
           {/* footer */}
@@ -462,7 +451,7 @@ export default function AuthPage() {
               }}>
                 <Sparkles size={14} color={G} strokeWidth={1.8}/>
                 <span style={{fontSize:11.5,color:GM}}>
-                  <strong style={{color:GD}}>Demo:</strong> admin@kova.ai / password123
+                  <strong style={{color:GD}}>Demo:</strong> admin@sudharshan.ai / password123
                 </span>
               </div>
             )}
@@ -472,7 +461,7 @@ export default function AuthPage() {
 
               {mode==='register' && (
                 <div style={{animation:'authFadeUp .22s both'}}>
-                  <Field label="Full Name" value={form.name}
+                  <AuthField label="Full Name" value={form.name}
                     onChange={e=>set('name',e.target.value)}
                     onKeyDown={handleKey} placeholder="Your sacred name"
                     focused={focused==='name'}
@@ -482,7 +471,7 @@ export default function AuthPage() {
                 </div>
               )}
 
-              <Field label="Email Address" type="email" value={form.email}
+              <AuthField label="Email Address" type="email" value={form.email}
                 onChange={e=>set('email',e.target.value)}
                 onKeyDown={handleKey} placeholder="you@company.com"
                 focused={focused==='email'}
@@ -490,7 +479,7 @@ export default function AuthPage() {
                 onBlur={()=>setFocused(null)}
                 error={errors.email} Icon={Mail}/>
 
-              <Field label="Password"
+              <AuthField label="Password"
                 type={showPw?'text':'password'} value={form.password}
                 onChange={e=>set('password',e.target.value)}
                 onKeyDown={handleKey} placeholder="••••••••"
@@ -525,7 +514,7 @@ export default function AuthPage() {
                 animation:loading?'none':'authPulseBtn 2.5s ease-in-out infinite',
               }}>
               {loading
-                ? <><Loader2 size={17} style={{animation:'authSpin 1s linear infinite'}}/> Entering…</>
+                ? <><SudSpinner size={18}/> Entering…</>
                 : <>{mode==='login'?'Enter Workspace':'Create Account'} <ArrowRight size={16}/></>
               }
             </button>

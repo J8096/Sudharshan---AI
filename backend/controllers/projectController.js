@@ -7,7 +7,7 @@ const memProjects = new Map();
 const seedProjects = [
   {
     _id: 'proj-001', id: 'proj-001',
-    title: 'Kova Platform v3', description: 'Next-gen AI workspace with real-time collaboration',
+    title: 'Sudharshan AI Platform v3', description: 'Next-gen AI enterprise workspace with real-time collaboration',
     status: 'active', color: '#5b8dee', icon: '🚀',
     owner: 'demo-admin-001', members: ['demo-admin-001'],
     progress: 68, tags: ['ai', 'platform'],
@@ -35,7 +35,7 @@ const seedProjects = [
   },
   {
     _id: 'proj-003', id: 'proj-003',
-    title: 'Marketing Website', description: 'Landing page and blog for Kova launch',
+    title: 'Marketing Website', description: 'Landing page and blog for Sudharshan AI launch',
     status: 'paused', color: '#f5a623', icon: '🌐',
     owner: 'demo-admin-001', members: ['demo-admin-001'],
     progress: 30, tags: ['frontend', 'marketing'],

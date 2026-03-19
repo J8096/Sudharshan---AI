@@ -1,21 +1,48 @@
 const { v4: uuid } = require('uuid');
 const path = require('path');
 const fs = require('fs');
-const multer = require('multer');
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
 const MODELS = [
-  { id: 'llama-3.3-70b-versatile',  name: 'Llama 3.3 · 70B',      ctx: '128k', tag: 'Best' },
-  { id: 'llama-3.1-8b-instant',     name: 'Llama 3.1 · 8B',       ctx: '128k', tag: 'Fastest' },
-  { id: 'openai/gpt-oss-120b',      name: 'GPT OSS · 120B',        ctx: '128k', tag: 'Powerful' },
-  { id: 'openai/gpt-oss-20b',       name: 'GPT OSS · 20B',         ctx: '128k', tag: 'Fast' },
+  { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 · 70B', ctx: '128k', tag: 'Best' },
+  { id: 'llama-3.1-8b-instant',    name: 'Llama 3.1 · 8B',  ctx: '128k', tag: 'Fastest' },
+  { id: 'openai/gpt-oss-120b',     name: 'GPT OSS · 120B',  ctx: '128k', tag: 'Powerful' },
+  { id: 'openai/gpt-oss-20b',      name: 'GPT OSS · 20B',   ctx: '128k', tag: 'Fast' },
 ];
 
-// Per-user in-memory sessions: userId -> Map(sessId -> session)
+// Per-user in-memory sessions with hard caps — fixes memory leak
 const userSessions = new Map();
+const MAX_USERS    = 500;
+const MAX_SESSIONS = 20;
+const SESSION_TTL  = 2 * 60 * 60 * 1000; // 2 hours
+
+// Periodic GC — runs every 30 min, removes stale sessions + their uploaded files
+setInterval(() => {
+  const now = Date.now();
+  let evicted = 0;
+  for (const [userId, store] of userSessions.entries()) {
+    for (const [sessId, sess] of store.entries()) {
+      if (now - sess.lastActive > SESSION_TTL) {
+        sess.files?.forEach(f => { try { fs.unlinkSync(f.path); } catch {} });
+        store.delete(sessId);
+        evicted++;
+      }
+    }
+    if (store.size === 0) userSessions.delete(userId);
+  }
+  if (evicted > 0) console.log(`[session-gc] evicted ${evicted} stale sessions`);
+}, 30 * 60 * 1000);
 
 function getUserStore(userId) {
+  if (!userSessions.has(userId) && userSessions.size >= MAX_USERS) {
+    let oldestKey, oldestTime = Infinity;
+    for (const [uid, store] of userSessions.entries()) {
+      const lastActive = Math.max(...[...store.values()].map(s => s.lastActive));
+      if (lastActive < oldestTime) { oldestTime = lastActive; oldestKey = uid; }
+    }
+    if (oldestKey) userSessions.delete(oldestKey);
+  }
   if (!userSessions.has(userId)) userSessions.set(userId, new Map());
   return userSessions.get(userId);
 }
@@ -27,10 +54,30 @@ function getSession(userId, sessionId) {
     s.lastActive = Date.now();
     return s;
   }
+  if (store.size >= MAX_SESSIONS) {
+    let oldestId, oldestTime = Infinity;
+    for (const [id, s] of store.entries()) {
+      if (s.lastActive < oldestTime) { oldestTime = s.lastActive; oldestId = id; }
+    }
+    const old = store.get(oldestId);
+    old?.files?.forEach(f => { try { fs.unlinkSync(f.path); } catch {} });
+    store.delete(oldestId);
+  }
   const sid = uuid();
-  const s = { id: sid, title: 'New Chat', messages: [], files: [], model: 'llama-3.3-70b-versatile', createdAt: Date.now(), lastActive: Date.now() };
+  const s = {
+    id: sid, title: 'New Chat', messages: [], files: [],
+    model: 'llama-3.3-70b-versatile',
+    createdAt: Date.now(), lastActive: Date.now(),
+  };
   store.set(sid, s);
   return s;
+}
+
+function sanitizeMessage(msg) {
+  if (typeof msg !== 'string') return null;
+  const trimmed = msg.trim();
+  if (!trimmed || trimmed.length > 32000) return null;
+  return trimmed;
 }
 
 exports.getModels = (req, res) => res.json(MODELS);
@@ -57,6 +104,8 @@ exports.getSession = (req, res) => {
 
 exports.deleteSession = (req, res) => {
   const store = getUserStore(req.user.id);
+  const sess = store.get(req.params.id);
+  sess?.files?.forEach(f => { try { fs.unlinkSync(f.path); } catch {} });
   store.delete(req.params.id);
   res.json({ ok: true });
 };
@@ -65,7 +114,8 @@ exports.updateTitle = (req, res) => {
   const store = getUserStore(req.user.id);
   const s = store.get(req.params.id);
   if (!s) return res.status(404).json({ error: 'Not found' });
-  s.title = req.body.title || s.title;
+  const title = typeof req.body.title === 'string' ? req.body.title.trim().slice(0, 120) : s.title;
+  s.title = title || s.title;
   res.json({ ok: true, title: s.title });
 };
 
@@ -73,7 +123,6 @@ exports.uploadFiles = (req, res) => {
   const { sessionId } = req.body;
   if (!req.files?.length) return res.status(400).json({ error: 'No files received' });
   const sess = getSession(req.user.id, sessionId);
-
   const added = req.files.map(f => {
     const textMimes = ['text/', 'application/json', 'application/javascript', 'application/xml'];
     let content = null;
@@ -84,7 +133,6 @@ exports.uploadFiles = (req, res) => {
     sess.files.push(meta);
     return { id: meta.id, name: meta.name, type: meta.type, size: meta.size, url: meta.url, readable: !!content };
   });
-
   res.json({ sessionId: sess.id, files: added });
 };
 
@@ -101,20 +149,24 @@ exports.deleteFile = (req, res) => {
 };
 
 exports.chat = async (req, res) => {
-  const { message, sessionId, model = 'llama-3.3-70b-versatile' } = req.body;
-  if (!message?.trim()) return res.status(400).json({ error: 'Message required' });
+  const safe = sanitizeMessage(req.body.message);
+  if (!safe) return res.status(400).json({ error: 'Message must be a non-empty string under 32,000 characters' });
+
+  const { sessionId, model = 'llama-3.3-70b-versatile' } = req.body;
+  const allowedModels = MODELS.map(m => m.id);
+  const safeModel = allowedModels.includes(model) ? model : 'llama-3.3-70b-versatile';
 
   if (!GROQ_API_KEY || GROQ_API_KEY === 'your_groq_api_key_here') {
-    return res.status(500).json({ error: 'No GROQ_API_KEY configured. Add it to backend/.env' });
+    return res.status(500).json({ error: 'No GROQ_API_KEY configured on server.' });
   }
 
   const sess = getSession(req.user.id, sessionId);
-  sess.model = model;
+  sess.model = safeModel;
   if (sess.messages.length === 0) {
-    sess.title = message.trim().slice(0, 55) + (message.length > 55 ? '…' : '');
+    sess.title = safe.slice(0, 55) + (safe.length > 55 ? '…' : '');
   }
 
-  let system = `You are Kova, an elite AI assistant built for professional developers and teams.
+  let system = `You are Sudharshan AI, an elite AI assistant built for professional developers and teams.
 - Expert in all programming languages, system design, algorithms, debugging, architecture
 - Precise, thoughtful, direct. No fluff. Use markdown with proper code blocks.
 - Always include language identifiers in code fences
@@ -142,8 +194,8 @@ exports.chat = async (req, res) => {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model, stream: true, max_tokens: 8192, temperature: 0.7,
-        messages: [{ role: 'system', content: system }, ...history, { role: 'user', content: message.trim() }],
+        model: safeModel, stream: true, max_tokens: 8192, temperature: 0.7,
+        messages: [{ role: 'system', content: system }, ...history, { role: 'user', content: safe }],
       }),
     });
 
@@ -153,7 +205,7 @@ exports.chat = async (req, res) => {
       return res.end();
     }
 
-    sess.messages.push({ role: 'user', content: message.trim(), ts: Date.now() });
+    sess.messages.push({ role: 'user', content: safe, ts: Date.now() });
 
     let full = '';
     const reader = response.body.getReader();

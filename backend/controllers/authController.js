@@ -8,11 +8,11 @@ const memUsers = new Map();
 
 // Generate the demo hash at startup so it is always correct
 bcrypt.hash('password123', 10).then(hash => {
-  memUsers.set('admin@kova.ai', {
+  memUsers.set('admin@sudharshan.ai', {
     _id: 'demo-admin-001',
     id:  'demo-admin-001',
     name: 'Alex Johnson',
-    email: 'admin@kova.ai',
+    email: 'admin@sudharshan.ai',
     password: hash,
     role: 'admin',
     avatar: '',
@@ -20,7 +20,7 @@ bcrypt.hash('password123', 10).then(hash => {
     status: 'active',
     createdAt: new Date('2024-01-15'),
   });
-  console.log('  ✓ Demo user ready  →  admin@kova.ai / password123');
+  console.log('  ✓ Demo user ready  →  admin@sudharshan.ai / password123');
 });
 
 // Only use Mongoose if DB is actually connected (readyState 1)
